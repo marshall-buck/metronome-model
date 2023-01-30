@@ -1,0 +1,31 @@
+body {
+  font-family: Inter, Avenir, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 24px;
+  font-weight: 400;
+  margin: 0;
+  padding: 0;
+  box-sizing: content-box;
+
+}
+
+
+#beats-container {
+  display: flex;
+  gap: 2rem;
+}
+
+.beat {
+  width: 100px;
+  height: 100px;
+  background-color: black;
+
+
+
+}
+
+.beat.active {
+  background-color: rgb(222, 150, 56);
+  font-size: 2rem;
+  color: white;
+}
