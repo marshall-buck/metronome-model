@@ -89,20 +89,14 @@ function selectTimeSigHandler(e: Event) {
     "#beats-container"
   ) as HTMLElement;
   padContainer.innerHTML = "";
+  mn.timeSig = target.value;
 
-  const beats = numberOfPads(target.value);
-
+  const beats = mn.timeSig.beats;
   for (let i = 0; i < beats; i++) {
     const pad = document.createElement("div");
     pad.className = "beat";
     padContainer?.appendChild(pad);
   }
-}
-
-/** return number of pads to draw */
-function numberOfPads(beats: string): number {
-  mn.timeSig = beats;
-  return mn.timeSig.beats;
 }
 
 selectTimeSig?.addEventListener("input", selectTimeSigHandler);

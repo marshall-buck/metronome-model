@@ -10,13 +10,6 @@ interface TimeSigs {
   [key: string]: TimeSig;
 }
 
-interface Beat {
-  quarter: number;
-  eighth: number;
-  sixteenth: number;
-  trips: number;
-}
-
 interface NoteQueue {
   currentBeat: number;
   nextNoteTime: number;
@@ -39,8 +32,8 @@ const PITCH_RAMP_TIME = 0.1;
 const DEFAULT_LOOKAHEAD = 0.25;
 const DEFAULT_INTERVAL = 100;
 
-const DIVISION_BEAT = 750;
-const BAR_BEAT = 1000;
+const DIVISION_BEAT_PITCH = 750;
+const BAR_BEAT_PITCH = 1000;
 
 // How far ahead to schedule audio (sec) .25 default,
 // this is used with interval, to overlap with next
@@ -55,7 +48,7 @@ const INTERVAL = DEFAULT_INTERVAL;
  */
 
 class Metronome {
-  private _timerID: string | number | NodeJS.Timeout | undefined = undefined;
+  private _timerID: number | null | NodeJS.Timer = null;
   private _drawBeatModifier: number = 1;
   private _timeSig: TimeSig = TIME_SIGS["1"];
   private _soundsPerBar = this._timeSig.beats * this._drawBeatModifier;
@@ -81,12 +74,30 @@ class Metronome {
   }
 
   /** Start metronome */
-  start(): void {
-    this.isPlaying = !this.isPlaying;
+  public start(): void {
+    this.isPlaying = true;
 
     this.nextNoteTime = this.ctx.currentTime;
     this.ctx.resume();
   }
+
+  /**Clears timerID from setInterval */
+  private clearTimerID = () => {
+    if (this._timerID) {
+      clearInterval(this._timerID);
+      this._timerID = null;
+    }
+  };
+  /** Suspends audioContext and resets metronome to beat 0 */
+  public reset() {
+    this.clearTimerID();
+    this.ctx.suspend();
+    this.currentBeat = 0;
+    this.notesInQueue.length = 0;
+    this.nextNoteTime = 0;
+    this.isPlaying = false;
+  }
+
   /**************GETTERS AND SETTERS*************************/
 
   /**Change masterGainNode volume getter and setters   */
@@ -161,11 +172,11 @@ class Metronome {
     const note = new Note(this.ctx, this.masterGainNode);
     // sets the division beats
     if (this.currentBeat % this._drawBeatModifier !== 0) {
-      note.setPitch(DIVISION_BEAT, PITCH_RAMP_TIME);
+      note.setPitch(DIVISION_BEAT_PITCH, PITCH_RAMP_TIME);
     }
     // sets beat1 pitch
     if (this.currentBeat === 0) {
-      note.setPitch(BAR_BEAT, PITCH_RAMP_TIME);
+      note.setPitch(BAR_BEAT_PITCH, PITCH_RAMP_TIME);
     }
     note.play(time);
   }
@@ -203,13 +214,12 @@ class Metronome {
 
     this._timerID = setInterval(this.scheduler, INTERVAL);
   };
-
+  /********   UI helpers */
   /** Determines if there is a note to be drawn
    * - returns drawNote || false
    */
   public shouldDrawNote(): boolean | number {
     let drawNote = this.lastNoteDrawn;
-    // console.log("shouldDrawNote before loop", this.notesInQueue);
 
     while (
       this.notesInQueue.length &&
@@ -225,21 +235,6 @@ class Metronome {
       return drawNote;
     }
     return false;
-  }
-
-  /**Clears timerID from setInterval */
-  private clearTimerID = () => {
-    clearInterval(this._timerID);
-    this._timerID = undefined;
-  };
-  /** Suspends audioContext and resets metronome to beat 0 */
-  public reset() {
-    this.ctx.suspend();
-    this.clearTimerID();
-    this.currentBeat = 0;
-    this.notesInQueue.length = 0;
-    this.nextNoteTime = 0;
-    this.isPlaying = false;
   }
 }
 
