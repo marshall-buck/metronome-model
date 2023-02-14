@@ -132,17 +132,12 @@ class Metronome {
   /**   Metronome beats to play sound
    * choices are 'quarter, 'eighth', 'sixteenth' 'trips'
    */
-  public beatsToPlay(division: string = "quarter") {
-    if (division in BEAT_MODS) {
-      const mod = division as keyof Beat;
-      this._drawBeatModifier = BEAT_MODS[mod];
-      this._soundsPerBar = this._timeSig.beats * this._drawBeatModifier;
-      Metronome._adjustTempo(this.tempo, this._drawBeatModifier);
-    } else {
-      throw new Error(
-        "Value must be a string 'quarter, 'eighth', 'sixteenth' 'trips' "
-      );
-    }
+  public subdivideBeats(division: string | number) {
+    if (typeof division === "string") division = Number(division);
+
+    this._drawBeatModifier = division;
+    this._soundsPerBar = this._timeSig.beats * this._drawBeatModifier;
+    Metronome._adjustTempo(this.tempo, this._drawBeatModifier);
   }
 
   private static _adjustTempo(tempo: number, mod: number): void {

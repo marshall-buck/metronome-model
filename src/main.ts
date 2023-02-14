@@ -74,7 +74,7 @@ const subdivisions = document.querySelector("#subdivisions");
 function changeSubdivisionsHandler(e: Event) {
   const target = e.target as HTMLSelectElement;
 
-  mn.beatsToPlay(target.value);
+  mn.subdivideBeats(target.value);
 }
 
 subdivisions?.addEventListener("input", changeSubdivisionsHandler);
