@@ -33,8 +33,6 @@ const TIME_SIGS: TimeSigs = {
   7: { beats: 12, noteValue: 8 },
 };
 
-const BEAT_MODS: Beat = { quarter: 1, eighth: 2, sixteenth: 4, trips: 3 };
-
 const DEFAULT_TEMPO = 120;
 const SECONDS_PER_MINUTE = 60;
 const PITCH_RAMP_TIME = 0.1;
@@ -58,7 +56,7 @@ const INTERVAL = DEFAULT_INTERVAL;
 
 class Metronome {
   private _timerID: string | number | NodeJS.Timeout | undefined = undefined;
-  private _drawBeatModifier: number = BEAT_MODS.quarter;
+  private _drawBeatModifier: number = 1;
   private _timeSig: TimeSig = TIME_SIGS["1"];
   private _soundsPerBar = this._timeSig.beats * this._drawBeatModifier;
   private nextNoteTime: number = 0;
@@ -110,7 +108,7 @@ class Metronome {
 
   set tempo(value: number) {
     this._tempo = value;
-    Metronome._adjustTempo(value, this._drawBeatModifier);
+    Metronome._adjustTempo(value, this._drawBeatModifier, this.timeSig);
   }
 
   /** TimeSignature getter and setters */
@@ -122,6 +120,7 @@ class Metronome {
     const sig = TIME_SIGS[value as string];
     this._timeSig = sig;
     this._soundsPerBar = this._timeSig.beats * this._drawBeatModifier;
+    Metronome._adjustTempo(this.tempo, this._drawBeatModifier, sig);
   }
 
   /** read only drawBeatModifier */
@@ -129,19 +128,31 @@ class Metronome {
     return this._drawBeatModifier;
   }
 
-  /**   Metronome beats to play sound
-   * choices are 'quarter, 'eighth', 'sixteenth' 'trips'
+  /**   Used to subdivide beats
+   * i.e. if the time signature is 4/4, and the division is 2,
+   * the sounds will double, implying every eight note is played.
+   *
+   * the draw beat modifier is also set, so the active beat only
+   * changes on the quarter note
+   *
    */
   public subdivideBeats(division: string | number) {
     if (typeof division === "string") division = Number(division);
 
     this._drawBeatModifier = division;
     this._soundsPerBar = this._timeSig.beats * this._drawBeatModifier;
-    Metronome._adjustTempo(this.tempo, this._drawBeatModifier);
+    Metronome._adjustTempo(this.tempo, this._drawBeatModifier, this.timeSig);
   }
-
-  private static _adjustTempo(tempo: number, mod: number): void {
-    Metronome._adjustedTempo = tempo * mod;
+  /**needs to be called anytime, tempo, or time sig or beat modifiers are changed
+   * sets an adjusted tempo to play sounds
+   */
+  private static _adjustTempo(
+    tempo: number,
+    mod: number,
+    timeSig: TimeSig
+  ): void {
+    if (timeSig.noteValue === 8) Metronome._adjustedTempo = tempo * mod * 2;
+    else Metronome._adjustedTempo = tempo * mod;
   }
   //***********SCHEDULING******************* */
 
