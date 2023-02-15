@@ -1,4 +1,9 @@
-import { VOLUME_SLIDER_RAMP_TIME, DEFAULT_VOLUME } from "./audioCtx";
+import {
+  VOLUME_SLIDER_RAMP_TIME,
+  DEFAULT_VOLUME,
+  DEFAULT_FREQUENCY,
+  DEFAULT_SOUND_LENGTH,
+} from "./config";
 
 interface Frequency {
   [key: string]: number;
@@ -19,9 +24,6 @@ const FREQUENCIES: Frequency = {
   BB4: 466.16,
   B4: 493.88,
 };
-// 440 * Math.pow(1.059463094359,12)
-const DEFAULT_FREQUENCY = 380;
-const DEFAULT_SOUND_LENGTH = 0.05;
 
 /** Class representing a single note extends OscillatorNode Web Audio API */
 class Note extends OscillatorNode {

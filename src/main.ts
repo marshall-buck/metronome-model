@@ -5,17 +5,12 @@ import { mn } from "./models/metronome";
 // const mn: Metronome = new Metronome();
 
 let anF: number;
+let beats: string = "1";
 
 /******************* START/PAUSE *****************************/
 const start = document.querySelector("#start") as HTMLInputElement;
 const pause = document.querySelector("#pause") as HTMLInputElement;
 const reset = document.querySelector("#reset") as HTMLInputElement;
-
-/** Toggle button to show Stop or Start */
-// function toggleStartButton() {
-//   if (toggleStart.innerText === "Start") toggleStart.innerText = "Stop";
-//   else toggleStart.innerText = "Start";
-// }
 
 /** Handles starting/Stopping metronome */
 async function handleStart() {
@@ -51,16 +46,16 @@ function resetPadsUi(pads: NodeListOf<Element>) {
 const tempoSlider: HTMLInputElement = document.querySelector(
   "input[name=tempo]"
 ) as HTMLInputElement;
-tempoSlider.value = mn.tempo.toString();
+tempoSlider.value = mn.getBpm().toString();
 const tempoLabel = document.querySelector(
   "label[for=tempo] span"
 ) as HTMLElement;
-tempoLabel.innerText = mn.tempo.toString();
+tempoLabel.innerText = mn.getBpm().toString();
 /** Handler to change Tempo */
 function changeTempoHandler(e: Event) {
   const target = e.target as HTMLInputElement;
   const tempo = +target.value;
-  mn.tempo = tempo;
+  mn.setBpm(tempo);
 
   tempoLabel.innerText = target.value;
 }
@@ -88,7 +83,7 @@ const subdivisions = document.querySelector("#subdivisions");
 
 function changeSubdivisionsHandler(e: Event) {
   const target = e.target as HTMLSelectElement;
-
+  beats = target.value;
   mn.subdivideBeats(target.value);
 }
 
@@ -104,9 +99,9 @@ function selectTimeSigHandler(e: Event) {
     "#beats-container"
   ) as HTMLElement;
   padContainer.innerHTML = "";
-  mn.timeSig = target.value;
+  mn.setTimeSig(target.value);
 
-  const beats = mn.timeSig.beats;
+  const beats = mn.getTimeSig().beats;
   for (let i = 0; i < beats; i++) {
     const pad = document.createElement("div");
     pad.className = "beat";
@@ -130,7 +125,7 @@ function animatePads() {
       // idx === drawNote / 2 will act like eight notes, must
       //  also set time sig beats to 8
 
-      if (idx === (drawNote as number) / mn.drawBeatModifier) {
+      if (idx === (drawNote as number) / Number(beats)) {
         pad.classList.toggle("active");
       } else pad.setAttribute("class", "beat");
     });
