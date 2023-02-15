@@ -7,31 +7,46 @@ import { mn } from "./models/metronome";
 let anF: number;
 
 /******************* START/PAUSE *****************************/
-const toggleStart = document.querySelector("#start") as HTMLInputElement;
+const start = document.querySelector("#start") as HTMLInputElement;
+const pause = document.querySelector("#pause") as HTMLInputElement;
+const reset = document.querySelector("#reset") as HTMLInputElement;
 
 /** Toggle button to show Stop or Start */
-function toggleStartButton() {
-  if (toggleStart.innerText === "Start") toggleStart.innerText = "Stop";
-  else toggleStart.innerText = "Start";
-}
+// function toggleStartButton() {
+//   if (toggleStart.innerText === "Start") toggleStart.innerText = "Stop";
+//   else toggleStart.innerText = "Start";
+// }
 
 /** Handles starting/Stopping metronome */
-function handleToggleStart() {
-  toggleStartButton();
-  mn.start();
-  if (mn.isPlaying) {
-    // Start playing
-
-    mn.scheduler(); // kick off scheduling
-    anF = requestAnimationFrame(animatePads); // start the drawing loop.
-  } else {
-    mn.reset();
-    cancelAnimationFrame(anF);
-  }
+async function handleStart() {
+  if (mn.isPlaying) return; // disable is playing
+  anF = requestAnimationFrame(animatePads);
+  await mn.start();
 }
 
-toggleStart?.addEventListener("click", handleToggleStart);
+start?.addEventListener("mousedown", handleStart);
+/** Handles starting/Stopping metronome */
+async function handlePause() {
+  if (!mn.isPlaying) return; // disable if !is playing
+  cancelAnimationFrame(anF);
+  await mn.pause();
+}
 
+pause.addEventListener("mousedown", handlePause);
+/** Handles starting/Stopping metronome */
+async function handleReset() {
+  cancelAnimationFrame(anF);
+  await mn.reset();
+  const pads = document.querySelectorAll(".beat");
+  resetPadsUi(pads);
+}
+
+reset?.addEventListener("mousedown", handleReset);
+/** reset pad ui */
+
+function resetPadsUi(pads: NodeListOf<Element>) {
+  pads.forEach((e) => e.classList.remove("active"));
+}
 /******************* TEMPO CONTROL *****************************/
 const tempoSlider: HTMLInputElement = document.querySelector(
   "input[name=tempo]"
@@ -105,6 +120,8 @@ selectTimeSig?.addEventListener("input", selectTimeSigHandler);
 /** function to update the UI, so we can see when the beat progress.
  This is a loop: it reschedules itself to redraw at the end. */
 function animatePads() {
+  // console.log("animate");
+
   const drawNote = mn.shouldDrawNote();
   const pads = document.querySelectorAll(".beat");
   if (drawNote !== false) {
