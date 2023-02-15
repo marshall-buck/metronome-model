@@ -1,23 +1,31 @@
+import { TimeSig, TIME_SIGS } from "./config";
+
 /**
  *  Class to convert a user entered tempo, into an adjusted tempo
  * for the proper number of sounds to play per bar,
  * based on bpm, time sig and subdivisions
+ *
+ * Only used in Metronome class
  *
  * timeSig: is an object that determines pads(beats) per bar.
  *          the note value is used to determine if the adjusted
  *          tempo need to be changed. If the noteValue is 8 the adjusted
  *          tempo will double.
  *
- * subdivisions: how is the beats are subdivided, this is from ui, default is 1.
- *                A time sig of 3/4 will sound 3 beats, if the divisions is 2,
- *                a time sig of 3/4 will play 6 sounds. This is also used to
+ * subdivisions:  How the bar is subdivided, input from ui, default is 1.
+ *                A time sig of 3/4 will sound 3 beats per bar, if the divisions is 2,
+ *                a time sig of 3/4 will play 6 sounds per bar. This is also used to
  *                determine what pitch to play each beat.
  *
+ * soundsPerBar:  Number of sounds to play per bar
  *
+ * adjustedTempo:  true sounds per minute based on all factors (bpm, timeSig, divisions)
+ *                 used to calculate how long each beat is in seconds
+ *                 in the Metronome.nextNote function
+ *
+ * tempo: tempo(bpm) from ui
  *
  */
-
-import { TimeSig, TIME_SIGS } from "./config";
 
 class TempoController {
   private _timeSig: TimeSig = TIME_SIGS["1"];
@@ -44,11 +52,12 @@ class TempoController {
     this.adjustTempo(value, this.subdivisions, this._timeSig);
   }
 
-  /** TimeSignature getter and setters */
+  /** TimeSignature getter and setters open to Metronome class */
   get timeSig(): TimeSig {
     return this._timeSig as TimeSig;
   }
-
+  /** sets new time sig, while making appropriate changes
+   *  to adjustedTempo and sounds per bar */
   set timeSig(value: TimeSig | string) {
     const sig = TIME_SIGS[value as string];
     this._timeSig = sig;
@@ -63,17 +72,18 @@ class TempoController {
    * changes on the quarter note
    *
    */
-  public subdivideBeats(number: string | number) {
-    if (typeof number === "string") number = Number(number);
+  public subdivideBeats(division: string | number) {
+    if (typeof division === "string") division = Number(division);
 
-    this.subdivisions = number;
+    this.subdivisions = division;
     this.soundsPerBar = this._timeSig.beats * this.subdivisions;
     this.adjustTempo(this.tempo, this.subdivisions, this._timeSig);
   }
-  /**needs to be called anytime, tempo, or time sig or beat modifiers are changed
+  /** adjustTempo
+   *   needs to be called anytime, tempo, or time sig or subdivisions are changed
    * sets an adjusted tempo to play sounds
    */
-  public adjustTempo(tempo: number, mod: number, timeSig: TimeSig): void {
+  private adjustTempo(tempo: number, mod: number, timeSig: TimeSig): void {
     if (timeSig.noteValue === 8) this.adjustedTempo = tempo * mod * 2;
     else this.adjustedTempo = tempo * mod;
   }

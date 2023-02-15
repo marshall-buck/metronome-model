@@ -115,15 +115,12 @@ selectTimeSig?.addEventListener("input", selectTimeSigHandler);
 /** function to update the UI, so we can see when the beat progress.
  This is a loop: it reschedules itself to redraw at the end. */
 function animatePads() {
-  // console.log("animate");
-
   const drawNote = mn.shouldDrawNote();
   const pads = document.querySelectorAll(".beat");
   if (drawNote !== false) {
     pads.forEach((pad, idx) => {
       //  To highlight beat every n beats drawNote/ n
       // idx === drawNote / 2 will act like eight notes, must
-      //  also set time sig beats to 8
 
       if (idx === (drawNote as number) / Number(beats)) {
         pad.classList.toggle("active");

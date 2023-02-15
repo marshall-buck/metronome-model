@@ -10,16 +10,23 @@ import {
   LOOKAHEAD,
   PITCH_RAMP_TIME,
   SECONDS_PER_MINUTE,
+  TimeSig,
+  NoteQueue,
 } from "./config";
-import { TempoController, TimeSig } from "./tempoControl";
-
-interface NoteQueue {
-  currentBeat: number;
-  nextNoteTime: number;
-}
+import { TempoController } from "./tempoControl";
 
 /**
- * Metronome class, that controls a metronome extends {AudioContext}
+ * Metronome class, that controls a metronome instance,
+ *
+ * timerId: setInterval id
+ * nextNoteTime:  a number that represents the ctx time to play the next note
+ * masterVolume: the master ctx volume
+ *
+ * tC: the TempoController instance
+ * ctx: AudioContext
+ * currentBeat: the current beat being played, used in a NoteQueue object
+ * notesInQueue:  an array of NoteQueue objects to be played
+ *
  */
 
 class Metronome {
@@ -37,7 +44,6 @@ class Metronome {
   private masterGainNode: GainNode = new GainNode(ctx);
 
   public isPlaying: boolean = false;
-  // public drawBeatMod = this.tC.drawBeatModifier;
 
   constructor(ctx: AudioContext) {
     this.ctx = ctx;
@@ -106,7 +112,7 @@ class Metronome {
     this.tC.tempo = value;
   }
 
-  // /** TimeSignature getter and setters */
+  // /** TimeSignature getter and setters open to ui */
   public getTimeSig(): TimeSig {
     return this.tC.timeSig;
   }
@@ -140,7 +146,6 @@ class Metronome {
 
   /** Pushes next note into queue */
   private scheduleNote() {
-    "scheduleNote called";
     // if (!this.isPlaying) return;
     // Push the note into the queue, even if we're not playing.
     this.notesInQueue.push({
@@ -155,9 +160,9 @@ class Metronome {
   /** Sets the next note beat, based on time signature and tempo */
   private nextNote() {
     // if (!this.isPlaying) return;
-    const secondsPerBeat =
+    const secondsPerSound =
       SECONDS_PER_MINUTE / (this.tC.adjustedTempo ?? this.tC.tempo);
-    this.nextNoteTime += secondsPerBeat; // Add beat length to last beat time
+    this.nextNoteTime += secondsPerSound; // Add beat length to last beat time
     // Advance the beat number, wrap to 1 when reaching timeSig.beats
     this.currentBeat = (this.currentBeat + 1) % this.tC.soundsPerBar;
   }
@@ -178,6 +183,7 @@ class Metronome {
 
     this._timerID = setInterval(this.scheduler, INTERVAL);
   };
+
   /********   UI helpers */
   /** Determines if there is a note to be drawn
    * - returns drawNote || false
@@ -203,7 +209,6 @@ class Metronome {
   /** lets the ui tell the class how to subdivide beats */
   public subdivideBeats(division: string | number) {
     this.tC.subdivideBeats(division);
-    // this.drawBeatMod = this.tC.drawBeatModifier;
   }
 }
 

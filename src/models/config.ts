@@ -1,4 +1,9 @@
-/**Metronome Defaults */
+/**Metronome class Defaults */
+interface NoteQueue {
+  currentBeat: number;
+  nextNoteTime: number;
+}
+
 const ctx = new AudioContext();
 const VOLUME_SLIDER_RAMP_TIME = 0.2;
 const DEFAULT_VOLUME = 0.2;
@@ -21,12 +26,12 @@ const LOOKAHEAD = DEFAULT_LOOKAHEAD;
 const DEFAULT_INTERVAL = 50; //100
 const INTERVAL = DEFAULT_INTERVAL;
 
-/**Note Class defaults */
+/** Note Class defaults */
 // 440 * Math.pow(1.059463094359,12)
 const DEFAULT_FREQUENCY = 380;
 const DEFAULT_SOUND_LENGTH = 0.05;
 
-/**TempoController Defaults */
+/** TempoController Defaults */
 
 interface TimeSig {
   beats: number;
@@ -64,4 +69,4 @@ export {
   TIME_SIGS,
 };
 
-export type { TimeSig };
+export type { TimeSig, NoteQueue };
