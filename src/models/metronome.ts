@@ -59,32 +59,24 @@ class Metronome {
   /** Start metronome, pause and reset */
   public async start() {
     console.log("START-top", this);
-
+    if (this._timerID) this.clearTimerID();
     if (this.isPlaying) return;
 
-    await this.ctx.resume();
     this.isPlaying = true;
+    this._timerID = setInterval(this.scheduler, INTERVAL);
+    await this.ctx.resume();
 
-    this.scheduler();
     console.log("START-bottom", this);
   }
   public async pause() {
     console.log("PAUSE-top", this);
-    this.isPlaying = !this.isPlaying;
+    this.isPlaying = false;
 
     await this.ctx.suspend();
+    this.clearTimerID();
     console.log("PAUSE-bottom", this);
   }
 
-  /**Clears timerID from setInterval */
-  private clearTimerID = () => {
-    console.log("clearTimerID-top", this);
-    if (this._timerID) {
-      clearInterval(this._timerID);
-      this._timerID = null;
-    }
-    console.log("clearTimerID-bottom", this);
-  };
   /** Suspends audioContext and resets metronome to beat 0 */
   public async reset() {
     console.log("RESET-top", this);
@@ -99,6 +91,16 @@ class Metronome {
     await this.ctx.suspend();
     console.log("RESET-bottom", this);
   }
+
+  /**Clears timerID from setInterval */
+  private clearTimerID = () => {
+    console.log("clearTimerID-top", this);
+    if (this._timerID) {
+      clearInterval(this._timerID);
+      this._timerID = null;
+    }
+    console.log("clearTimerID-bottom", this);
+  };
 
   /**************GETTERS AND SETTERS*************************/
 
@@ -184,19 +186,17 @@ class Metronome {
   /** Starts scheduling notes to be played, */
   private scheduler = () => {
     console.log("scheduler-top", this);
-    if (this._timerID) this.clearTimerID();
 
-    if (!this.isPlaying) return;
+    if (this.isPlaying === false) return;
 
     // While there are notes that will need to play before the next interval,
     // schedule them and advance the pointer.
-
+    console.log("scheduler-while", this);
     while (this.nextNoteTime < this.ctx.currentTime + LOOKAHEAD) {
       this.scheduleNote();
       this.nextNote();
     }
 
-    this._timerID = setInterval(this.scheduler, INTERVAL);
     console.log("scheduler-bottom", this);
   };
 

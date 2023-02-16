@@ -16,6 +16,7 @@ const reset = document.querySelector("#reset") as HTMLInputElement;
 async function handleStart() {
   if (mn.isPlaying) return; // disable is playing
   anF = requestAnimationFrame(animatePads);
+
   await mn.start();
 }
 
