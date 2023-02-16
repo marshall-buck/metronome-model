@@ -12,6 +12,7 @@ import {
   SECONDS_PER_MINUTE,
   TimeSig,
   NoteQueue,
+  BEAT_PITCH,
 } from "./config";
 import { TempoController } from "./tempoControl";
 
@@ -135,17 +136,17 @@ class Metronome {
   //***********SCHEDULING******************* */
 
   private determineNotePitch(note: Note) {
-    console.log("determineNotePitch-top", this);
+    console.log("determineNotePitch-top *********************", note.frequency);
     if (
-      this.currentBeat % this.tC.subdivisions === 0 &&
+      this.currentBeat % this.tC.subdivisions !== 0 &&
       this.currentBeat !== 0
     ) {
       note.setPitch(DIVISION_BEAT_PITCH, PITCH_RAMP_TIME);
     }
     // sets beat1 pitch
-    if (this.currentBeat === 0) {
-      note.setPitch(BAR_BEAT_PITCH, PITCH_RAMP_TIME);
-    }
+    else if (this.currentBeat !== 0) {
+      note.setPitch(BEAT_PITCH, PITCH_RAMP_TIME);
+    } else note.setPitch(BAR_BEAT_PITCH, PITCH_RAMP_TIME);
     console.log("determineNotePitch-bottom", this);
   }
 

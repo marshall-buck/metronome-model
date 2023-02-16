@@ -14,6 +14,7 @@ const PITCH_RAMP_TIME = 0.1;
 
 const DIVISION_BEAT_PITCH = 750;
 const BAR_BEAT_PITCH = 1000;
+const BEAT_PITCH = 100;
 
 // How far ahead to schedule audio (sec) .25 default,
 // this is used with interval, to overlap with next
@@ -88,6 +89,7 @@ export {
   DEFAULT_SOUND_LENGTH,
   TIME_SIGS,
   FREQUENCIES,
+  BEAT_PITCH,
 };
 
 export type { TimeSig, NoteQueue };
