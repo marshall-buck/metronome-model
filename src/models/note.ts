@@ -3,27 +3,8 @@ import {
   DEFAULT_VOLUME,
   DEFAULT_FREQUENCY,
   DEFAULT_SOUND_LENGTH,
+  FREQUENCIES,
 } from "./config";
-
-interface Frequency {
-  [key: string]: number;
-}
-
-//TODO: Abstract to Formula
-const FREQUENCIES: Frequency = {
-  C4: 261.63,
-  DB4: 277.18,
-  D4: 293.66,
-  EB4: 311.13,
-  E4: 329.63,
-  F4: 349.23,
-  GB4: 369.99,
-  G4: 392.0,
-  AB4: 415.3,
-  A4: 440.0,
-  BB4: 466.16,
-  B4: 493.88,
-};
 
 /** Class representing a single note extends OscillatorNode Web Audio API */
 class Note extends OscillatorNode {
@@ -31,6 +12,8 @@ class Note extends OscillatorNode {
   gainNode: GainNode;
   soundLength: number = DEFAULT_SOUND_LENGTH;
   private _noteVolume: number = DEFAULT_VOLUME;
+  private _currentBeat: number = 0;
+  private _nextNoteTime: number;
 
   constructor(ctx: AudioContext, gainNode: GainNode) {
     super(ctx, { frequency: DEFAULT_FREQUENCY, type: "triangle" });
@@ -38,7 +21,36 @@ class Note extends OscillatorNode {
     this.ctx = ctx;
     this.gainNode = gainNode;
     this.connect(this.gainNode);
+    this._nextNoteTime = this.ctx.currentTime;
   }
+  /**************GETTERS AND SETTERS*************************/
+  /** Change note volume note volume */
+  get noteVolume() {
+    return this._noteVolume;
+  }
+  set noteVolume(value: number) {
+    this.gainNode.gain.exponentialRampToValueAtTime(
+      value,
+      this.ctx.currentTime + VOLUME_SLIDER_RAMP_TIME
+    );
+  }
+
+  /** Get and set currentBeat */
+  get currentBeat() {
+    return this._currentBeat;
+  }
+  set currentBeat(value: number) {
+    this._currentBeat = value;
+  }
+
+  /** Get and set _nextNoteTime */
+  get nextNoteTime() {
+    return this._nextNoteTime;
+  }
+  set nextNoteTime(value: number) {
+    this._nextNoteTime = value;
+  }
+
   /** Starts and stops a note. */
   play(time: number): void {
     this.start(time);
@@ -58,18 +70,6 @@ class Note extends OscillatorNode {
         this.frequency.setValueAtTime(FREQUENCIES[upper], time);
       }
     }
-  }
-
-  /**************GETTERS AND SETTERS*************************/
-  /** Change note volume note volume */
-  get noteVolume() {
-    return this._noteVolume;
-  }
-  set noteVolume(value: number) {
-    this.gainNode.gain.exponentialRampToValueAtTime(
-      value,
-      this.ctx.currentTime + VOLUME_SLIDER_RAMP_TIME
-    );
   }
 }
 

@@ -31,6 +31,26 @@ const INTERVAL = DEFAULT_INTERVAL;
 const DEFAULT_FREQUENCY = 380;
 const DEFAULT_SOUND_LENGTH = 0.05;
 
+interface Frequency {
+  [key: string]: number;
+}
+
+//TODO: Abstract to Formula
+const FREQUENCIES: Frequency = {
+  C4: 261.63,
+  DB4: 277.18,
+  D4: 293.66,
+  EB4: 311.13,
+  E4: 329.63,
+  F4: 349.23,
+  GB4: 369.99,
+  G4: 392.0,
+  AB4: 415.3,
+  A4: 440.0,
+  BB4: 466.16,
+  B4: 493.88,
+};
+
 /** TempoController Defaults */
 
 interface TimeSig {
@@ -67,6 +87,7 @@ export {
   DEFAULT_FREQUENCY,
   DEFAULT_SOUND_LENGTH,
   TIME_SIGS,
+  FREQUENCIES,
 };
 
 export type { TimeSig, NoteQueue };

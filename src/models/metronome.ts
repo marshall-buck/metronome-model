@@ -33,12 +33,13 @@ class Metronome {
   private _timerID: number | null | NodeJS.Timer = null;
 
   private nextNoteTime: number;
+  private currentBeat: number = 0;
   private _masterVolume: number = DEFAULT_VOLUME;
 
   private tC: TempoController = new TempoController(DEFAULT_TEMPO);
 
   private ctx: AudioContext;
-  private currentBeat: number = 0;
+
   private notesInQueue: NoteQueue[] = [];
   private lastNoteDrawn: number = this.tC.timeSig.beats - 1;
   private masterGainNode: GainNode = new GainNode(ctx);
@@ -55,31 +56,38 @@ class Metronome {
     this.nextNoteTime = this.ctx.currentTime;
   }
 
-  /** Start metronome */
+  /** Start metronome, pause and reset */
   public async start() {
+    console.log("START-top", this);
+
     if (this.isPlaying) return;
 
     await this.ctx.resume();
     this.isPlaying = true;
 
     this.scheduler();
+    console.log("START-bottom", this);
   }
   public async pause() {
+    console.log("PAUSE-top", this);
     this.isPlaying = !this.isPlaying;
 
     await this.ctx.suspend();
-    console.log(this);
+    console.log("PAUSE-bottom", this);
   }
 
   /**Clears timerID from setInterval */
   private clearTimerID = () => {
+    console.log("clearTimerID-top", this);
     if (this._timerID) {
       clearInterval(this._timerID);
       this._timerID = null;
     }
+    console.log("clearTimerID-bottom", this);
   };
   /** Suspends audioContext and resets metronome to beat 0 */
   public async reset() {
+    console.log("RESET-top", this);
     this.isPlaying = false;
     this.currentBeat = 0;
     this.notesInQueue.length = 0;
@@ -89,6 +97,7 @@ class Metronome {
 
     this.lastNoteDrawn = this.tC.timeSig.beats - 1;
     await this.ctx.suspend();
+    console.log("RESET-bottom", this);
   }
 
   /**************GETTERS AND SETTERS*************************/
@@ -124,7 +133,7 @@ class Metronome {
   //***********SCHEDULING******************* */
 
   private determineNotePitch(note: Note) {
-    // sets the division beats
+    console.log("determineNotePitch-top", this);
     if (
       this.currentBeat % this.tC.subdivisions === 0 &&
       this.currentBeat !== 0
@@ -135,40 +144,46 @@ class Metronome {
     if (this.currentBeat === 0) {
       note.setPitch(BAR_BEAT_PITCH, PITCH_RAMP_TIME);
     }
+    console.log("determineNotePitch-bottom", this);
   }
 
   /** Triggers the note to play */
   private playTone(time: number): void {
+    console.log("playTone-top", this);
     const note = new Note(this.ctx, this.masterGainNode);
     this.determineNotePitch(note);
     note.play(time);
+    console.log("playTone-bottom", this);
   }
 
   /** Pushes next note into queue */
   private scheduleNote() {
+    console.log("scheduleNote-top", this);
     // if (!this.isPlaying) return;
-    // Push the note into the queue, even if we're not playing.
+
     this.notesInQueue.push({
       currentBeat: this.currentBeat,
       nextNoteTime: this.nextNoteTime,
     });
-    // console.log("scheduleNote after push", this.notesInQueue);
-
     this.playTone(this.nextNoteTime);
+    console.log("scheduleNote-bottom", this);
   }
 
-  /** Sets the next note beat, based on time signature and tempo */
+  /** Sets the time in seconds to play the next note */
   private nextNote() {
+    console.log("nextNote-top", this);
     // if (!this.isPlaying) return;
     const secondsPerSound =
       SECONDS_PER_MINUTE / (this.tC.adjustedTempo ?? this.tC.tempo);
     this.nextNoteTime += secondsPerSound; // Add beat length to last beat time
     // Advance the beat number, wrap to 1 when reaching timeSig.beats
     this.currentBeat = (this.currentBeat + 1) % this.tC.soundsPerBar;
+    console.log("nextNote-bottom", this);
   }
 
-  /** Starts scheduling note to be played (arrow function for "this")*/
-  public scheduler = () => {
+  /** Starts scheduling notes to be played, */
+  private scheduler = () => {
+    console.log("scheduler-top", this);
     if (this._timerID) this.clearTimerID();
 
     if (!this.isPlaying) return;
@@ -182,10 +197,12 @@ class Metronome {
     }
 
     this._timerID = setInterval(this.scheduler, INTERVAL);
+    console.log("scheduler-bottom", this);
   };
 
-  /********   UI helpers */
-  /** Determines if there is a note to be drawn
+  /******** PUBLIC  UI helpers **********************/
+  /** shouldDrawNote
+   * Determines if there is a note to be drawn
    * - returns drawNote || false
    */
   public shouldDrawNote(): boolean | number {
@@ -206,7 +223,9 @@ class Metronome {
     }
     return false;
   }
-  /** lets the ui tell the class how to subdivide beats */
+  /**
+   * subdivideBeats
+   * Lets the ui tell the class how to subdivide beats */
   public subdivideBeats(division: string | number) {
     this.tC.subdivideBeats(division);
   }
