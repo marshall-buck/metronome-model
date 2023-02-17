@@ -17,7 +17,7 @@ import {
 import { TempoController } from "./tempoControl";
 
 /**
- * Metronome class, that controls a metronome instance,
+ * Metronome class,  controls a metronome instance,
  *
  * timerId: setInterval id
  * nextNoteTime:  a number that represents the ctx time to play the next note
@@ -28,22 +28,30 @@ import { TempoController } from "./tempoControl";
  * currentBeat: the current beat being played, used in a NoteQueue object
  * notesInQueue:  an array of NoteQueue objects to be played
  *
+ *
+ * lastNoteDrawn: initially set to last beat in timeSig, only
+ *                used to tell the ui if it needs to draw a note
+ * masterGainNode: GainNode - sets the volume of metronome instance
+ * isPlaying: boolean
+ *
+ *
+ *
  */
 
 class Metronome {
-  private _timerID: number | null | NodeJS.Timer = null;
-
-  private nextNoteTime: number = 0;
-  private currentBeat: number = 0;
+  private ctx: AudioContext;
+  private masterGainNode: GainNode = new GainNode(ctx);
   private _masterVolume: number = DEFAULT_VOLUME;
 
   private tC: TempoController = new TempoController(DEFAULT_TEMPO);
 
-  private ctx: AudioContext;
+  private _timerID: number | null | NodeJS.Timer = null;
+
+  private nextNoteTime: number = 0;
+  private currentBeat: number = 0;
 
   private notesInQueue: NoteQueue[] = [];
   private lastNoteDrawn: number = this.tC.timeSig.beats - 1;
-  private masterGainNode: GainNode = new GainNode(ctx);
 
   public isPlaying: boolean = false;
 
@@ -57,9 +65,8 @@ class Metronome {
     // this.nextNoteTime = this.ctx.currentTime;
   }
 
-  /**************GETTERS AND SETTERS*************************/
+  /************** PUBLIC GETTERS AND SETTERS*************************/
 
-  /**Change masterGainNode volume getter and setters   */
   get masterVolume() {
     return this._masterVolume;
   }
@@ -71,19 +78,19 @@ class Metronome {
     );
   }
 
-  public getBpm() {
+  get bpm() {
     return this.tC.tempo;
   }
-  public setBpm(value: number) {
+
+  set bpm(value: number) {
     this.tC.tempo = value;
   }
 
-  // /** TimeSignature getter and setters open to ui */
-  public getTimeSig(): TimeSig {
+  get timeSig(): TimeSig {
     return this.tC.timeSig;
   }
 
-  public setTimeSig(value: TimeSig | string) {
+  set timeSig(value: TimeSig | string) {
     this.tC.timeSig = value;
   }
 
@@ -91,22 +98,17 @@ class Metronome {
   public async start() {
     if (this.isPlaying) return;
     this.isPlaying = true;
-
     await this.ctx.resume();
-
     this.startInterval();
   }
   public async pause() {
-    console.log("PAUSE-top", this);
     if (!this.isPlaying) return;
     this.isPlaying = false;
-
     await this.ctx.suspend();
-
     this.clearInterval();
   }
 
-  /** Suspends audioContext and resets metronome to beat 0 */
+  /** Suspends audioContext and resets metronome notesInQueue and beats */
   public async reset() {
     if (!this.isPlaying) return;
     await this.ctx.suspend();
@@ -116,8 +118,6 @@ class Metronome {
     this.nextNoteTime = this.ctx.currentTime;
 
     this.clearInterval();
-
-    this.lastNoteDrawn = this.tC.timeSig.beats - 1;
   }
 
   /**Clears timerID from setInterval */
@@ -145,6 +145,8 @@ class Metronome {
       this.scheduleNote();
       this.nextNote();
     }
+
+    // console.log("scheduler", this);
   };
 
   /** Pushes next note into queue */
@@ -185,14 +187,8 @@ class Metronome {
     this.currentBeat = (this.currentBeat + 1) % this.tC.soundsPerBar;
   }
 
-  /******** PUBLIC  UI helpers **********************/
-  /** shouldDrawNote
-   * Determines if there is a note to be drawn
-   * - returns drawNote || false
-   */
-  public shouldDrawNote(): boolean | number {
+  private removeNoteFromQueue() {
     let drawNote = this.lastNoteDrawn;
-
     while (
       this.notesInQueue.length &&
       this.notesInQueue[0].nextNoteTime < this.ctx.currentTime
@@ -200,6 +196,26 @@ class Metronome {
       drawNote = this.notesInQueue[0].currentBeat;
       this.notesInQueue.shift(); // Remove note from queue
     }
+
+    return drawNote;
+  }
+
+  /** shouldDrawNote- this needs to be called on the front end
+   * Determines if there is a note to be drawn
+   * - returns drawNote || false
+   */
+  public shouldDrawNote(): boolean | number {
+    // let drawNote = this.lastNoteDrawn;
+    let drawNote = this.removeNoteFromQueue();
+
+    // while (
+    //   this.notesInQueue.length &&
+    //   this.notesInQueue[0].nextNoteTime < this.ctx.currentTime
+    // ) {
+    //   drawNote = this.notesInQueue[0].currentBeat;
+    //   this.notesInQueue.shift(); // Remove note from queue
+
+    // }
 
     // We only need to draw if the note has moved.
     if (this.lastNoteDrawn !== drawNote) {

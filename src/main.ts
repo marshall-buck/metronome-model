@@ -1,6 +1,7 @@
 import "./style.css";
 
 import { mn } from "./models/metronome";
+import { TimeSig } from "./models/config";
 
 // const mn: Metronome = new Metronome();
 
@@ -47,16 +48,19 @@ function resetPadsUi(pads: NodeListOf<Element>) {
 const tempoSlider: HTMLInputElement = document.querySelector(
   "input[name=tempo]"
 ) as HTMLInputElement;
-tempoSlider.value = mn.getBpm().toString();
+// tempoSlider.value = mn.getBpm().toString();
+tempoSlider.value = mn.bpm.toString();
 const tempoLabel = document.querySelector(
   "label[for=tempo] span"
 ) as HTMLElement;
-tempoLabel.innerText = mn.getBpm().toString();
+// tempoLabel.innerText = mn.getBpm().toString();
+tempoLabel.innerText = mn.bpm.toString();
 /** Handler to change Tempo */
 function changeTempoHandler(e: Event) {
   const target = e.target as HTMLInputElement;
   const tempo = +target.value;
-  mn.setBpm(tempo);
+  mn.bpm = tempo;
+  // mn.setBpm(tempo);
 
   tempoLabel.innerText = target.value;
 }
@@ -100,9 +104,9 @@ function selectTimeSigHandler(e: Event) {
     "#beats-container"
   ) as HTMLElement;
   padContainer.innerHTML = "";
-  mn.setTimeSig(target.value);
+  mn.timeSig = target.value;
 
-  const beats = mn.getTimeSig().beats;
+  const beats = mn.timeSig.beats;
   for (let i = 0; i < beats; i++) {
     const pad = document.createElement("div");
     pad.className = "beat";
@@ -116,6 +120,7 @@ selectTimeSig?.addEventListener("input", selectTimeSigHandler);
 /** function to update the UI, so we can see when the beat progress.
  This is a loop: it reschedules itself to redraw at the end. */
 function animatePads() {
+  // const drawNote = false;
   const drawNote = mn.shouldDrawNote();
   const pads = document.querySelectorAll(".beat");
   if (drawNote !== false) {
