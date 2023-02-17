@@ -33,7 +33,7 @@ import { TempoController } from "./tempoControl";
 class Metronome {
   private _timerID: number | null | NodeJS.Timer = null;
 
-  private nextNoteTime: number;
+  private nextNoteTime: number = 0;
   private currentBeat: number = 0;
   private _masterVolume: number = DEFAULT_VOLUME;
 
@@ -54,54 +54,8 @@ class Metronome {
       this.ctx.currentTime
     );
     this.masterGainNode.connect(this.ctx.destination);
-    this.nextNoteTime = this.ctx.currentTime;
+    // this.nextNoteTime = this.ctx.currentTime;
   }
-
-  /** Start metronome, pause and reset */
-  public async start() {
-    console.log("START-top", this);
-    if (this._timerID) this.clearTimerID();
-    if (this.isPlaying) return;
-
-    this.isPlaying = true;
-    this._timerID = setInterval(this.scheduler, INTERVAL);
-    await this.ctx.resume();
-
-    console.log("START-bottom", this);
-  }
-  public async pause() {
-    console.log("PAUSE-top", this);
-    this.isPlaying = false;
-
-    await this.ctx.suspend();
-    this.clearTimerID();
-    console.log("PAUSE-bottom", this);
-  }
-
-  /** Suspends audioContext and resets metronome to beat 0 */
-  public async reset() {
-    console.log("RESET-top", this);
-    this.isPlaying = false;
-    this.currentBeat = 0;
-    this.notesInQueue.length = 0;
-    this.nextNoteTime = this.ctx.currentTime;
-
-    this.clearTimerID();
-
-    this.lastNoteDrawn = this.tC.timeSig.beats - 1;
-    await this.ctx.suspend();
-    console.log("RESET-bottom", this);
-  }
-
-  /**Clears timerID from setInterval */
-  private clearTimerID = () => {
-    console.log("clearTimerID-top", this);
-    if (this._timerID) {
-      clearInterval(this._timerID);
-      this._timerID = null;
-    }
-    console.log("clearTimerID-bottom", this);
-  };
 
   /**************GETTERS AND SETTERS*************************/
 
@@ -133,10 +87,82 @@ class Metronome {
     this.tC.timeSig = value;
   }
 
+  /** Start metronome, pause and reset */
+  public async start() {
+    if (this.isPlaying) return;
+    this.isPlaying = true;
+
+    await this.ctx.resume();
+
+    this.startInterval();
+  }
+  public async pause() {
+    console.log("PAUSE-top", this);
+    if (!this.isPlaying) return;
+    this.isPlaying = false;
+
+    await this.ctx.suspend();
+
+    this.clearInterval();
+  }
+
+  /** Suspends audioContext and resets metronome to beat 0 */
+  public async reset() {
+    if (!this.isPlaying) return;
+    await this.ctx.suspend();
+    this.isPlaying = false;
+    this.currentBeat = 0;
+    this.notesInQueue.length = 0;
+    this.nextNoteTime = this.ctx.currentTime;
+
+    this.clearInterval();
+
+    this.lastNoteDrawn = this.tC.timeSig.beats - 1;
+  }
+
+  /**Clears timerID from setInterval */
+  private clearInterval = () => {
+    if (this._timerID) {
+      clearInterval(this._timerID);
+      this._timerID = null;
+    }
+  };
+  /**Starts timerID from setInterval */
+  private startInterval = () => {
+    if (!this._timerID) {
+      this._timerID = setInterval(this.scheduler, INTERVAL);
+    } else this.clearInterval();
+  };
+
   //***********SCHEDULING******************* */
 
+  /** Starts scheduling notes to be played, */
+  private scheduler = () => {
+    // While there are notes that will need to play before the next interval,
+    // schedule them and advance the pointer.
+
+    while (this.nextNoteTime < this.ctx.currentTime + LOOKAHEAD) {
+      this.scheduleNote();
+      this.nextNote();
+    }
+  };
+
+  /** Pushes next note into queue */
+  private scheduleNote() {
+    this.notesInQueue.push({
+      currentBeat: this.currentBeat,
+      nextNoteTime: this.nextNoteTime,
+    });
+    this.playTone(this.nextNoteTime);
+  }
+  /** Triggers the note to play */
+  private playTone(time: number): void {
+    const note = new Note(this.ctx, this.masterGainNode);
+    this.determineNotePitch(note);
+    note.play(time);
+  }
+
   private determineNotePitch(note: Note) {
-    console.log("determineNotePitch-top *********************", note.frequency);
     if (
       this.currentBeat % this.tC.subdivisions !== 0 &&
       this.currentBeat !== 0
@@ -147,59 +173,17 @@ class Metronome {
     else if (this.currentBeat !== 0) {
       note.setPitch(BEAT_PITCH, PITCH_RAMP_TIME);
     } else note.setPitch(BAR_BEAT_PITCH, PITCH_RAMP_TIME);
-    console.log("determineNotePitch-bottom", this);
   }
 
-  /** Triggers the note to play */
-  private playTone(time: number): void {
-    console.log("playTone-top", this);
-    const note = new Note(this.ctx, this.masterGainNode);
-    this.determineNotePitch(note);
-    note.play(time);
-    console.log("playTone-bottom", this);
-  }
-
-  /** Pushes next note into queue */
-  private scheduleNote() {
-    console.log("scheduleNote-top", this);
-    // if (!this.isPlaying) return;
-
-    this.notesInQueue.push({
-      currentBeat: this.currentBeat,
-      nextNoteTime: this.nextNoteTime,
-    });
-    this.playTone(this.nextNoteTime);
-    console.log("scheduleNote-bottom", this);
-  }
-
-  /** Sets the time in seconds to play the next note */
+  /** Sets nextNoteTime, and currentBeat  */
   private nextNote() {
-    console.log("nextNote-top", this);
-    // if (!this.isPlaying) return;
     const secondsPerSound =
       SECONDS_PER_MINUTE / (this.tC.adjustedTempo ?? this.tC.tempo);
-    this.nextNoteTime += secondsPerSound; // Add beat length to last beat time
+    this.nextNoteTime += secondsPerSound;
+
     // Advance the beat number, wrap to 1 when reaching timeSig.beats
     this.currentBeat = (this.currentBeat + 1) % this.tC.soundsPerBar;
-    console.log("nextNote-bottom", this);
   }
-
-  /** Starts scheduling notes to be played, */
-  private scheduler = () => {
-    console.log("scheduler-top", this);
-
-    if (this.isPlaying === false) return;
-
-    // While there are notes that will need to play before the next interval,
-    // schedule them and advance the pointer.
-    console.log("scheduler-while", this);
-    while (this.nextNoteTime < this.ctx.currentTime + LOOKAHEAD) {
-      this.scheduleNote();
-      this.nextNote();
-    }
-
-    console.log("scheduler-bottom", this);
-  };
 
   /******** PUBLIC  UI helpers **********************/
   /** shouldDrawNote

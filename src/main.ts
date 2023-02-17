@@ -15,26 +15,26 @@ const reset = document.querySelector("#reset") as HTMLInputElement;
 /** Handles starting/Stopping metronome */
 async function handleStart() {
   if (mn.isPlaying) return; // disable is playing
-  anF = requestAnimationFrame(animatePads);
 
   await mn.start();
+  anF = requestAnimationFrame(animatePads);
 }
 
 start?.addEventListener("mousedown", handleStart);
 /** Handles starting/Stopping metronome */
 async function handlePause() {
   if (!mn.isPlaying) return; // disable if !is playing
-  cancelAnimationFrame(anF);
   await mn.pause();
+  cancelAnimationFrame(anF);
 }
 
 pause.addEventListener("mousedown", handlePause);
 /** Handles starting/Stopping metronome */
 async function handleReset() {
-  cancelAnimationFrame(anF);
   await mn.reset();
   const pads = document.querySelectorAll(".beat");
   resetPadsUi(pads);
+  cancelAnimationFrame(anF);
 }
 
 reset?.addEventListener("mousedown", handleReset);

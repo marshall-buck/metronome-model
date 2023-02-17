@@ -7,14 +7,14 @@ interface NoteQueue {
 const ctx = new AudioContext();
 const VOLUME_SLIDER_RAMP_TIME = 0.2;
 const DEFAULT_VOLUME = 0.2;
-const DEFAULT_TEMPO = 80;
+const DEFAULT_TEMPO = 60;
 
 const SECONDS_PER_MINUTE = 60;
 const PITCH_RAMP_TIME = 0.1;
 
 const DIVISION_BEAT_PITCH = 750;
 const BAR_BEAT_PITCH = 1000;
-const BEAT_PITCH = 100;
+const BEAT_PITCH = 250;
 
 // How far ahead to schedule audio (sec) .25 default,
 // this is used with interval, to overlap with next
