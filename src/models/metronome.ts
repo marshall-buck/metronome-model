@@ -129,9 +129,9 @@ class Metronome {
   };
   /**Starts timerID from setInterval */
   private startInterval = () => {
-    if (!this._timerID) {
-      this._timerID = setInterval(this.scheduler, INTERVAL);
-    } else this.clearInterval();
+    if (this._timerID) {
+      this.clearInterval();
+    } else this._timerID = setInterval(this.scheduler, INTERVAL);
   };
 
   //***********SCHEDULING******************* */

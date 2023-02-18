@@ -29,7 +29,7 @@ const INTERVAL = DEFAULT_INTERVAL;
 
 /** Note Class defaults */
 // 440 * Math.pow(1.059463094359,12)
-const DEFAULT_FREQUENCY = 380;
+
 const DEFAULT_SOUND_LENGTH = 0.05;
 
 interface Frequency {
@@ -85,7 +85,6 @@ export {
   BAR_BEAT_PITCH,
   LOOKAHEAD,
   INTERVAL,
-  DEFAULT_FREQUENCY,
   DEFAULT_SOUND_LENGTH,
   TIME_SIGS,
   FREQUENCIES,

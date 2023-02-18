@@ -1,9 +1,9 @@
 import {
   VOLUME_SLIDER_RAMP_TIME,
   DEFAULT_VOLUME,
-  DEFAULT_FREQUENCY,
   DEFAULT_SOUND_LENGTH,
   FREQUENCIES,
+  BAR_BEAT_PITCH,
 } from "./config";
 
 /** Class representing a single note extends OscillatorNode Web Audio API */
@@ -16,7 +16,7 @@ class Note extends OscillatorNode {
   private _nextNoteTime: number;
 
   constructor(ctx: AudioContext, gainNode: GainNode) {
-    super(ctx, { frequency: DEFAULT_FREQUENCY, type: "triangle" });
+    super(ctx, { frequency: BAR_BEAT_PITCH, type: "triangle" });
 
     this.ctx = ctx;
     this.gainNode = gainNode;
