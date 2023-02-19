@@ -3,7 +3,7 @@ import {
   DEFAULT_VOLUME,
   DEFAULT_SOUND_LENGTH,
   FREQUENCIES,
-  BAR_BEAT_PITCH,
+  PITCH_BAR,
 } from "./config";
 
 /** Class representing a single note extends OscillatorNode Web Audio API */
@@ -16,12 +16,13 @@ class Note extends OscillatorNode {
   private _nextNoteTime: number;
 
   constructor(ctx: AudioContext, gainNode: GainNode) {
-    super(ctx, { frequency: BAR_BEAT_PITCH, type: "triangle" });
+    super(ctx, { frequency: PITCH_BAR, type: "triangle" });
 
     this.ctx = ctx;
     this.gainNode = gainNode;
-    this.connect(this.gainNode);
+
     this._nextNoteTime = this.ctx.currentTime;
+    this.connect(this.gainNode);
   }
   /**************GETTERS AND SETTERS*************************/
   /** Change note volume note volume */
@@ -61,14 +62,7 @@ class Note extends OscillatorNode {
   setPitch(value: string | number, time: number = this.ctx.currentTime): void {
     if (typeof value === "number") this.frequency.setValueAtTime(value, time);
     else {
-      const upper = value.toUpperCase();
-      if (value[1] === "#" || !FREQUENCIES[upper]) {
-        throw new Error(
-          "Invalid pitch, Include only notes from C4 to C5, and no sharps only flats"
-        );
-      } else {
-        this.frequency.setValueAtTime(FREQUENCIES[upper], time);
-      }
+      throw new Error("frequency must be a number");
     }
   }
 }

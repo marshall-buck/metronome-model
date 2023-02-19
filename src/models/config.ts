@@ -12,9 +12,9 @@ const DEFAULT_TEMPO = 60;
 const SECONDS_PER_MINUTE = 60;
 const PITCH_RAMP_TIME = 0.1;
 
-const DIVISION_BEAT_PITCH = 750;
-const BAR_BEAT_PITCH = 1000;
-const BEAT_PITCH = 250;
+const PITCH_DIVISION = 250;
+const PITCH_BEAT = 500;
+const PITCH_BAR = 1000;
 
 // How far ahead to schedule audio (sec) .25 default,
 // this is used with interval, to overlap with next
@@ -81,14 +81,14 @@ export {
   DEFAULT_TEMPO,
   SECONDS_PER_MINUTE,
   PITCH_RAMP_TIME,
-  DIVISION_BEAT_PITCH,
-  BAR_BEAT_PITCH,
   LOOKAHEAD,
   INTERVAL,
   DEFAULT_SOUND_LENGTH,
   TIME_SIGS,
   FREQUENCIES,
-  BEAT_PITCH,
+  PITCH_DIVISION,
+  PITCH_BEAT,
+  PITCH_BAR,
 };
 
 export type { TimeSig, NoteQueue };

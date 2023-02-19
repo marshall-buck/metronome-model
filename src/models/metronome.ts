@@ -3,16 +3,16 @@ import {
   ctx,
   VOLUME_SLIDER_RAMP_TIME,
   DEFAULT_VOLUME,
-  BAR_BEAT_PITCH,
+  PITCH_BEAT,
   DEFAULT_TEMPO,
-  DIVISION_BEAT_PITCH,
+  PITCH_DIVISION,
+  PITCH_BAR,
   INTERVAL,
   LOOKAHEAD,
   PITCH_RAMP_TIME,
   SECONDS_PER_MINUTE,
   TimeSig,
   NoteQueue,
-  BEAT_PITCH,
 } from "./config";
 import { TempoController } from "./tempoControl";
 
@@ -161,23 +161,25 @@ class Metronome {
   private playTone(time: number): void {
     const note = new Note(this.ctx, this.masterGainNode);
     this.determineNotePitch(note);
+
     note.play(time);
   }
 
   private determineNotePitch(note: Note) {
-    if (
-      this.currentBeat % this.tC.subdivisions !== 0 &&
-      this.currentBeat !== 0
-    ) {
-      note.setPitch(DIVISION_BEAT_PITCH, PITCH_RAMP_TIME);
-    }
-    // sets beat1 pitch
-    else if (this.currentBeat !== 0) {
-      note.setPitch(BEAT_PITCH, PITCH_RAMP_TIME);
-    } else note.setPitch(BAR_BEAT_PITCH, PITCH_RAMP_TIME);
+    console.log(this.tC.subdivisions);
+    // BarBeat
+    if (this.currentBeat === 0) note.setPitch(PITCH_BAR, PITCH_RAMP_TIME);
+    // BEAT
+    else if (
+      this.currentBeat !== 0 &&
+      this.currentBeat % this.tC.subdivisions === 0
+    )
+      note.setPitch(PITCH_BEAT, PITCH_RAMP_TIME);
+    // Division
+    else note.setPitch(PITCH_DIVISION, PITCH_RAMP_TIME);
   }
 
-  /** Sets nextNoteTime, and currentBeat  */
+  /** Sets nextNoteTime, and advancers currentBeat  */
   private nextNote() {
     const secondsPerSound =
       SECONDS_PER_MINUTE / (this.tC.adjustedTempo ?? this.tC.tempo);
@@ -186,8 +188,10 @@ class Metronome {
     // Advance the beat number, wrap to 1 when reaching timeSig.beats
     this.currentBeat = (this.currentBeat + 1) % this.tC.soundsPerBar;
   }
-
-  private removeNoteFromQueue() {
+  /**removeNoteFromQueue
+   * loops through notes in queue and returns a note toDraw as number
+   */
+  private removeNoteFromQueue(): number {
     let drawNote = this.lastNoteDrawn;
     while (
       this.notesInQueue.length &&
@@ -196,26 +200,16 @@ class Metronome {
       drawNote = this.notesInQueue[0].currentBeat;
       this.notesInQueue.shift(); // Remove note from queue
     }
-
     return drawNote;
   }
 
   /** shouldDrawNote- this needs to be called on the front end
-   * Determines if there is a note to be drawn
+   * Determines if there is a note to be drawn, run
+   *  this function in the requestAnimationframe in the ui
    * - returns drawNote || false
    */
   public shouldDrawNote(): boolean | number {
-    // let drawNote = this.lastNoteDrawn;
     let drawNote = this.removeNoteFromQueue();
-
-    // while (
-    //   this.notesInQueue.length &&
-    //   this.notesInQueue[0].nextNoteTime < this.ctx.currentTime
-    // ) {
-    //   drawNote = this.notesInQueue[0].currentBeat;
-    //   this.notesInQueue.shift(); // Remove note from queue
-
-    // }
 
     // We only need to draw if the note has moved.
     if (this.lastNoteDrawn !== drawNote) {
