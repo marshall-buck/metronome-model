@@ -37,31 +37,40 @@
         </div>
 
         <div id="beats-container">
+          <!-- <div class="beat"></div>
           <div class="beat"></div>
           <div class="beat"></div>
-          <div class="beat"></div>
-          <div class="beat"></div>
+          <div class="beat"></div> -->
+        </div>
+
+        <div>
+          <button id="start">Start</button>
+          <button id="pause">Stop</button>
+          <button id="reset">reset</button>
+        </div>
+        <div>
+          <select id="time-sig">
+            <option value="1">4/4</option>
+            <option value="0">3/4</option>
+            <option value="2">5/4</option>
+            <option value="3">6/4</option>
+            <option value="4">6/8</option>
+            <option value="5">7/8</option>
+            <option value="6">9/8</option>
+            <option value="7">12/8</option>
+          </select>
+          <select id="subdivisions">
+            <option value="1">quarter</option>
+            <option value="2">eighth</option>
+            <option value="3">trips</option>
+            <option value="4">sixteenth</option>
+          </select>
+        </div>
+        <div>
+          <input type="checkbox" id="divisions" name="divisions" checked />
+          <label for="divisions">Show Divisions</label>
         </div>
       </div>
-      <button id="start">Start</button>
-      <button id="pause">Stop</button>
-      <button id="reset">reset</button>
-      <select id="time-sig">
-        <option value="1">4/4</option>
-        <option value="0">3/4</option>
-        <option value="2">5/4</option>
-        <option value="3">6/4</option>
-        <option value="4">6/8</option>
-        <option value="5">7/8</option>
-        <option value="6">9/8</option>
-        <option value="7">12/8</option>
-      </select>
-      <select id="subdivisions">
-        <option value="1">quarter</option>
-        <option value="2">eighth</option>
-        <option value="3">trips</option>
-        <option value="4">sixteenth</option>
-      </select>
     </div>
   </body>
 </html>

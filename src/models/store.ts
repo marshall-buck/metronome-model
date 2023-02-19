@@ -20,4 +20,6 @@ const soundState = {
   },
 };
 
+co;
+
 export { soundState };
