@@ -11,6 +11,8 @@ const reset = document.querySelector("#reset") as HTMLInputElement;
 const showDivisions = document.querySelector("#divisions") as HTMLInputElement;
 const padContainer = document.querySelector("#beats-container") as HTMLElement;
 
+let isShowDivisions = false;
+
 /** Handles starting/Stopping metronome */
 async function handleStart() {
   if (mn.isPlaying) return; // disable is playing
@@ -48,7 +50,7 @@ tempoSlider.value = mn.bpm.toString();
 const tempoLabel = document.querySelector(
   "label[for=tempo] span"
 ) as HTMLElement;
-// tempoLabel.innerText = mn.getBpm().toString();
+
 tempoLabel.innerText = mn.bpm.toString();
 /** Handler to change Tempo */
 function changeTempoHandler(e: Event) {
@@ -95,18 +97,11 @@ const selectTimeSig = document.querySelector("#time-sig");
 /** Handles resetting pads to proper amount of beats */
 function selectTimeSigHandler(e: Event) {
   const target = e.target as HTMLSelectElement;
-  // const padContainer = document.querySelector(
-  //   "#beats-container"
-  // ) as HTMLElement;
-  // padContainer.innerHTML = "";
+
   mn.timeSig = target.value;
 
   const beats = mn.timeSig.beats;
-  // for (let i = 0; i < beats; i++) {
-  //   const pad = document.createElement("div");
-  //   pad.className = "beat";
-  //   padContainer?.appendChild(pad);
-  // }
+
   createPads(padContainer, beats, mn.beatDivisions);
 }
 
@@ -123,12 +118,15 @@ function createPads(
   beats: number,
   divisions: number
 ) {
+  console.log("createPads");
+
   padContainer.innerHTML = "";
 
   const numPads = !showDivisions.checked ? beats : beats * divisions;
 
   for (let i = 0; i < numPads; i++) {
     const pad = document.createElement("div");
+    pad.classList.add("pad");
     if (showDivisions.checked) {
       if (i % divisions === 0) {
         pad.classList.add("beat");
@@ -144,18 +142,29 @@ function createPads(
 /** function to update the UI, so we can see when the beat progress.
  This is a loop: it reschedules itself to redraw at the end. */
 function animatePads() {
-  // const drawNote = false;
   const drawNote = mn.shouldDrawNote();
-  let pads = document.querySelectorAll(".beat");
-  if (drawNote !== false) {
-    pads.forEach((pad, idx) => {
-      //  To highlight beat every n beats drawNote/ n
-      // idx === drawNote / 2 will act like eight notes, must
+  let pads = document.querySelectorAll(".pad");
 
-      if (idx === (drawNote as number) / mn.beatDivisions) {
-        pad.classList.toggle("active");
-      } else pad.setAttribute("class", "beat");
-    });
+  if (showDivisions.checked !== isShowDivisions) {
+    createPads(padContainer, mn.timeSig.beats, mn.beatDivisions);
+    isShowDivisions = !isShowDivisions;
+  }
+
+  if (drawNote !== false) {
+    // If Show divisions is unchecked then only draw beats
+    if (!isShowDivisions) {
+      pads.forEach((pad, idx) => {
+        if (idx === (drawNote as number) / mn.beatDivisions) {
+          pad.classList.add("active");
+        } else pad.classList.remove("active");
+      });
+    } else {
+      pads.forEach((pad, idx) => {
+        if (idx === drawNote) {
+          pad.classList.add("active");
+        } else pad.classList.remove("active");
+      });
+    }
   }
 
   // Set up to draw again
