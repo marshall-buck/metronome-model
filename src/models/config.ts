@@ -71,7 +71,8 @@ const TIME_SIGS: TimeSigs = {
   4: { beats: 6, noteValue: 8 },
   5: { beats: 7, noteValue: 8 },
   6: { beats: 9, noteValue: 8 },
-  7: { beats: 12, noteValue: 8 },
+  7: { beats: 11, noteValue: 8 },
+  8: { beats: 12, noteValue: 8 },
 };
 
 export {

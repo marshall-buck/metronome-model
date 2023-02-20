@@ -65,7 +65,7 @@ class Metronome {
     // this.nextNoteTime = this.ctx.currentTime;
   }
 
-  /************** PUBLIC GETTERS AND SETTERS*************************/
+  /**************  GETTERS AND SETTERS FOR PUBLIC PROPS*************************/
 
   get masterVolume() {
     return this._masterVolume;
@@ -94,9 +94,18 @@ class Metronome {
     this.tC.timeSig = value;
   }
 
+  get beatDivisions() {
+    return this.tC.beatDivisions;
+  }
+
+  set beatDivisions(value: number) {
+    this.tC.subdivideBeats(value);
+  }
+
   /** Start metronome, pause and reset */
   public async start() {
     if (this.isPlaying) return;
+    this.scheduler();
     this.isPlaying = true;
     await this.ctx.resume();
     this.startInterval();
@@ -166,13 +175,12 @@ class Metronome {
   }
 
   private determineNotePitch(note: Note) {
-    console.log(this.tC.subdivisions);
     // BarBeat
     if (this.currentBeat === 0) note.setPitch(PITCH_BAR, PITCH_RAMP_TIME);
     // BEAT
     else if (
       this.currentBeat !== 0 &&
-      this.currentBeat % this.tC.subdivisions === 0
+      this.currentBeat % this.tC.beatDivisions === 0
     )
       note.setPitch(PITCH_BEAT, PITCH_RAMP_TIME);
     // Division
@@ -217,12 +225,6 @@ class Metronome {
       return drawNote;
     }
     return false;
-  }
-  /**
-   * subdivideBeats
-   * Lets the ui tell the class how to subdivide beats */
-  public subdivideBeats(division: string | number) {
-    this.tC.subdivideBeats(division);
   }
 }
 

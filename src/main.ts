@@ -3,7 +3,6 @@ import "./style.css";
 import { mn } from "./models/metronome";
 
 let anF: number;
-let divisions: string = "1";
 
 /******************* START/PAUSE *****************************/
 const start = document.querySelector("#start") as HTMLInputElement;
@@ -56,7 +55,6 @@ function changeTempoHandler(e: Event) {
   const target = e.target as HTMLInputElement;
   const tempo = +target.value;
   mn.bpm = tempo;
-  // mn.setBpm(tempo);
 
   tempoLabel.innerText = target.value;
 }
@@ -78,15 +76,15 @@ function volumeSliderHandler(e: Event) {
 
 masterVolume?.addEventListener("input", volumeSliderHandler);
 
-/******************PLAY SUBDIVISIONS */
+/******************SHOW SUBDIVISIONS */
 
 const subdivisions = document.querySelector("#subdivisions");
 
 function changeSubdivisionsHandler(e: Event) {
   const target = e.target as HTMLSelectElement;
-  divisions = target.value;
-  mn.subdivideBeats(target.value);
-  createPads(padContainer, mn.timeSig.beats, Number(divisions));
+  // divisions = target.value;
+  mn.beatDivisions = Number(target.value);
+  createPads(padContainer, mn.timeSig.beats, mn.beatDivisions);
 }
 
 subdivisions?.addEventListener("input", changeSubdivisionsHandler);
@@ -109,7 +107,7 @@ function selectTimeSigHandler(e: Event) {
   //   pad.className = "beat";
   //   padContainer?.appendChild(pad);
   // }
-  createPads(padContainer, beats, Number(divisions));
+  createPads(padContainer, beats, mn.beatDivisions);
 }
 
 selectTimeSig?.addEventListener("input", selectTimeSigHandler);
@@ -126,7 +124,6 @@ function createPads(
   divisions: number
 ) {
   padContainer.innerHTML = "";
-  // const divisionMultiplier = Number(divisions);
 
   const numPads = !showDivisions.checked ? beats : beats * divisions;
 
@@ -155,7 +152,7 @@ function animatePads() {
       //  To highlight beat every n beats drawNote/ n
       // idx === drawNote / 2 will act like eight notes, must
 
-      if (idx === (drawNote as number) / Number(divisions)) {
+      if (idx === (drawNote as number) / mn.beatDivisions) {
         pad.classList.toggle("active");
       } else pad.setAttribute("class", "beat");
     });
@@ -165,4 +162,4 @@ function animatePads() {
   anF = requestAnimationFrame(animatePads);
 }
 
-createPads(padContainer, mn.timeSig.beats, Number(divisions));
+createPads(padContainer, mn.timeSig.beats, mn.beatDivisions);

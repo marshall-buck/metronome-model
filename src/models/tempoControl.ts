@@ -30,8 +30,8 @@ import { TimeSig, TIME_SIGS } from "./config";
 class TempoController {
   private _timeSig: TimeSig = TIME_SIGS["1"];
 
-  public subdivisions: number = 1;
-  public soundsPerBar = this._timeSig.beats * this.subdivisions;
+  public beatDivisions: number = 1;
+  public soundsPerBar = this._timeSig.beats * this.beatDivisions;
   public adjustedTempo: number | null = null;
 
   private _tempo: number;
@@ -49,7 +49,7 @@ class TempoController {
 
   set tempo(value: number) {
     this._tempo = value;
-    this.adjustTempo(value, this.subdivisions, this._timeSig);
+    this.adjustTempo(value, this.beatDivisions, this._timeSig);
   }
 
   /** TimeSignature getter and setters open to Metronome class */
@@ -61,8 +61,8 @@ class TempoController {
   set timeSig(value: TimeSig | string) {
     const sig = TIME_SIGS[value as string];
     this._timeSig = sig;
-    this.soundsPerBar = this._timeSig.beats * this.subdivisions;
-    this.adjustTempo(this.tempo, this.subdivisions, sig);
+    this.soundsPerBar = this._timeSig.beats * this.beatDivisions;
+    this.adjustTempo(this.tempo, this.beatDivisions, sig);
   }
   /**   Used to subdivide beats
    * i.e. if the time signature is 4/4, and the division is 2,
@@ -72,12 +72,12 @@ class TempoController {
    * changes on the quarter note
    *
    */
-  public subdivideBeats(division: string | number) {
+  public subdivideBeats(division: number | string) {
     if (typeof division === "string") division = Number(division);
 
-    this.subdivisions = division;
-    this.soundsPerBar = this._timeSig.beats * this.subdivisions;
-    this.adjustTempo(this.tempo, this.subdivisions, this._timeSig);
+    this.beatDivisions = division;
+    this.soundsPerBar = this._timeSig.beats * this.beatDivisions;
+    this.adjustTempo(this.tempo, this.beatDivisions, this._timeSig);
   }
   /** adjustTempo
    *   needs to be called anytime, tempo, or time sig or subdivisions are changed
