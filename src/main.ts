@@ -4,15 +4,65 @@ import { mn } from "./models/metronome";
 
 let anF: number;
 
-/******************* START/PAUSE *****************************/
 const start = document.querySelector("#start") as HTMLInputElement;
 const pause = document.querySelector("#pause") as HTMLInputElement;
 const reset = document.querySelector("#reset") as HTMLInputElement;
+const tempoSlider: HTMLInputElement = document.querySelector(
+  "input[name=tempo]"
+) as HTMLInputElement;
+
+const tempoLabel = document.querySelector(
+  "label[for=tempo] span"
+) as HTMLElement;
+
+const masterVolumeLabel = document.querySelector(
+  "label[for=master-volume] span"
+) as HTMLElement;
+const masterVolume: HTMLInputElement | null = document.querySelector(
+  "input[name=master-volume]"
+);
+
 const showDivisions = document.querySelector("#divisions") as HTMLInputElement;
 const padContainer = document.querySelector("#beats-container") as HTMLElement;
+const lookahead = document.querySelector(
+  "input[name=lookahead]"
+) as HTMLInputElement;
+const lookaheadLabel = document.querySelector(
+  "label[for=lookahead] span"
+) as HTMLInputElement;
+const interval = document.querySelector(
+  "input[name=interval]"
+) as HTMLInputElement;
+const intervalLabel = document.querySelector(
+  "label[for=interval] span"
+) as HTMLInputElement;
+
+const subdivisions = document.querySelector("#subdivisions");
+
+const selectTimeSig = document.querySelector("#time-sig");
+
+/******************* GLOBAL SETTINGS *****************************/
+function handleChangeLookahead(e: Event) {
+  const target = e.target as HTMLInputElement;
+  const lookahead = +target.value;
+  lookaheadLabel.innerText = target.value;
+  mn.lookahead = lookahead;
+}
+
+lookahead.addEventListener("input", handleChangeLookahead);
+
+function handleChangeInterval(e: Event) {
+  const target = e.target as HTMLInputElement;
+  const interval = +target.value;
+
+  intervalLabel.innerText = target.value;
+  mn.interval = interval;
+}
+
+interval.addEventListener("input", handleChangeInterval);
 
 let isShowDivisions = false;
-
+/******************* START/PAUSE *****************************/
 /** Handles starting/Stopping metronome */
 async function handleStart() {
   if (mn.isPlaying) return; // disable is playing
@@ -30,6 +80,7 @@ async function handlePause() {
 }
 
 pause.addEventListener("mousedown", handlePause);
+
 /** Handles starting/Stopping metronome */
 async function handleReset() {
   await mn.reset();
@@ -42,14 +93,9 @@ reset?.addEventListener("mousedown", handleReset);
 /** reset pad ui */
 
 /******************* TEMPO CONTROL *****************************/
-const tempoSlider: HTMLInputElement = document.querySelector(
-  "input[name=tempo]"
-) as HTMLInputElement;
+
 // tempoSlider.value = mn.getBpm().toString();
 tempoSlider.value = mn.bpm.toString();
-const tempoLabel = document.querySelector(
-  "label[for=tempo] span"
-) as HTMLElement;
 
 tempoLabel.innerText = mn.bpm.toString();
 /** Handler to change Tempo */
@@ -64,12 +110,7 @@ function changeTempoHandler(e: Event) {
 tempoSlider?.addEventListener("input", changeTempoHandler);
 
 /******************* VOLUME CONTROL *****************************/
-const masterVolumeLabel = document.querySelector(
-  "label[for=master-volume] span"
-) as HTMLElement;
-const masterVolume: HTMLInputElement | null = document.querySelector(
-  "input[name=master-volume]"
-);
+
 function volumeSliderHandler(e: Event) {
   const target = e.target as HTMLInputElement;
   masterVolumeLabel.innerText = target.value;
@@ -79,8 +120,6 @@ function volumeSliderHandler(e: Event) {
 masterVolume?.addEventListener("input", volumeSliderHandler);
 
 /******************SHOW SUBDIVISIONS */
-
-const subdivisions = document.querySelector("#subdivisions");
 
 function changeSubdivisionsHandler(e: Event) {
   const target = e.target as HTMLSelectElement;
@@ -92,7 +131,6 @@ function changeSubdivisionsHandler(e: Event) {
 subdivisions?.addEventListener("input", changeSubdivisionsHandler);
 
 /***************SELECT TIME SIG***********************/
-const selectTimeSig = document.querySelector("#time-sig");
 
 /** Handles resetting pads to proper amount of beats */
 function selectTimeSigHandler(e: Event) {
@@ -118,8 +156,6 @@ function createPads(
   beats: number,
   divisions: number
 ) {
-  console.log("createPads");
-
   padContainer.innerHTML = "";
 
   const numPads = !showDivisions.checked ? beats : beats * divisions;

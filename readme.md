@@ -10,8 +10,8 @@
 - change bpm
 - bar beat, offbeats and beats have different pitch
 
-### Bug
-- [ ] restarting after stopping plays previous note in queue
+### Bugs
+
 
 ### Model Todo's
 
@@ -19,5 +19,6 @@
 - [ ] add user controls via midi
 - [ ] allow user to control beats separately (pitch,volume)
 - [ ] allow mode for silent bars
+- [ ] allow adjustable lookahead and latency
 
 
